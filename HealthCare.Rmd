@@ -1,0 +1,104 @@
+---
+title: 'HealthCare HomeWork #2'
+output:
+  html_document:
+    df_print: paged
+---
+
+#### Read Data 
+```{r, message=FALSE, warning=FALSE}
+#rload packages
+library(tidyverse);library(readxl); library(hhi)
+
+#Set uft-8
+Sys.setlocale("LC_ALL", "en_US.UTF8")
+
+#load plan data 
+contract <-  read_excel("~/GitHub/HealthCare/Monthly_Report_By_Plan_2019_01.xls")
+
+#load enrollment data
+enrollment <- read_csv("~/GitHub/HealthCare/CPSC_Enrollment_Info_2019_01.csv", 
+    col_types = cols(`Plan ID` = col_character()) )
+
+#load major insurance orgs 
+MajorInsuranceOrgs <- read_excel("~/GitHub/HealthCare/MajorInsuranceOrgs.xlsx")
+
+ourstates = c("PA", "NJ", "IN", "SC", "CT", "MS", "HI", "SD" )
+```
+
+#### Clean Enrollment Data
+
+```{r, message=FALSE, warning=FALSE}
+#convert enrollment data int
+enrollment$Enrollment <- as.numeric(enrollment$Enrollment)
+
+#select contracts that start with H,R, E
+enrollment <- enrollment %>%
+  filter(str_detect(`Contract Number`, "^H")| str_detect(`Contract Number`, "^R")|str_detect(`Contract Number`, "^E"))%>%
+  select(`Contract Number`, `Plan ID`, State,Enrollment)
+
+#filter out NAs
+index <- which(is.na(enrollment$Enrollment)); enrollment <- enrollment[-index, ]
+
+# summarize enrollment
+enrollment <- enrollment %>%group_by(`Contract Number`, `Plan ID`, State) %>% summarise(Enrollment = sum(Enrollment))
+```
+
+#### Clean Contracts Data
+
+```{r, message=FALSE, warning=FALSE}
+# clean contracts data
+contract <- contract %>%filter(str_detect(`Contract Number`, "^H")| str_detect(`Contract Number`, "^R")| 
+         str_detect(`Contract Number`, "^E"))%>%select(`Contract Number`, `Plan ID`, `Organization Marketing Name`) 
+```
+
+#### Join Major Insurance Organization Data with Contracts Data
+
+```{r, message=FALSE, warning=FALSE}
+#join contracts and majorinsurance
+contracts_insurance <- left_join(contract, MajorInsuranceOrgs, by = "Organization Marketing Name")
+
+#join contracts_insurance with enrollments data and filter to teams states
+final <- left_join(enrollment, contracts_insurance, by = c("Contract Number", "Plan ID")) %>% filter(State %in% ourstates)
+```
+
+#### calculate marketshare 
+```{r}
+
+final <- final %>% ungroup%>% select(-`Contract Number`, -`Plan ID`, -`Organization Marketing Name`)%>%
+  group_by(State, MajorInsuranceOrgName)%>% summarize(Enrollment = sum(Enrollment))
+
+final <- final %>% ungroup %>% group_by(State)%>% mutate( MS = Enrollment / sum(Enrollment) * 100)
+```
+
+
+```{r}
+#Calculate HHI
+CT_1 <- final %>% ungroup %>% filter(State == "CT")%>%select(MajorInsuranceOrgName, MS); CT <- round(hhi(data.frame(CT_1), "MS"), 0)
+HI_1 <- final %>% ungroup %>%filter(State == "HI")%>%select(MajorInsuranceOrgName, MS); HI <- round(hhi(data.frame(HI_1), "MS"), 0)
+IN_1 <- final %>% ungroup %>%filter(State == "IN")%>%select(MajorInsuranceOrgName, MS); IN <- round(hhi(data.frame(IN_1), "MS"), 0)
+MS_1 <- final %>% ungroup %>%filter(State == "MS")%>%select(MajorInsuranceOrgName, MS); MS <- round(hhi(data.frame(MS_1), "MS"), 0)
+NJ_1 <- final %>% ungroup %>%filter(State == "NJ")%>%select(MajorInsuranceOrgName, MS); NJ <- round(hhi(data.frame(NJ_1), "MS"), 0)
+PA_1 <- final %>% ungroup %>%filter(State == "PA")%>%select(MajorInsuranceOrgName, MS); PA <- round(hhi(data.frame(PA_1), "MS"), 0)
+SC_1 <- final %>% ungroup %>%filter(State == "SC")%>%select(MajorInsuranceOrgName, MS); SC <- round(hhi(data.frame(SC_1), "MS"), 0)
+SD_1 <- final %>% ungroup %>%filter(State == "SD")%>%select(MajorInsuranceOrgName, MS); SD <- round(hhi(data.frame(SD_1), "MS"), 0)
+```
+
+#### Make Table with State, hhi, MS and top insurance company 
+```{r}
+
+# make a dataframe
+hhi_df = data.frame(rbind(CT, HI, IN, MS, NJ, PA, SC, SD)) %>% rename( HHI = rbind.CT..HI..IN..MS..NJ..PA..SC..SD.)
+
+#vector of insurance companies
+insurance <- c("UnitedHealthcare", "HMSA Akamai Advantage", "UnitedHealthcare", "Humana", "Aetna Health Inc.",
+               "UPMC for Life", "UnitedHealthcare", "Medica Insurance Company")
+
+#vector of insurance companies market shares
+MS <- c(43.6, 28.6, 33.98, 57.2, 45.6, 13.2, 43.04, 65.3)
+hhi_df_1 <- cbind(hhi_df, insurance, MS)
+
+hhi_df_1
+```
+
+
