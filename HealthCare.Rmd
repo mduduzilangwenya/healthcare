@@ -5,6 +5,8 @@ output:
     df_print: paged
 ---
 
+#QUESTION 1
+
 #### Read Data 
 ```{r, message=FALSE, warning=FALSE}
 #rload packages
