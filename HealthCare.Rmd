@@ -71,23 +71,23 @@ final <- left_join(enrollment, contracts_insurance, by = c("Contract Number", "P
 #### calculate marketshare 
 ```{r}
 
-final <- final %>% ungroup%>% select(-`Contract Number`, -`Plan ID`, -`Organization Marketing Name`)%>%
+marketshare <- marketshare %>% ungroup%>% select(-`Contract Number`, -`Plan ID`, -`Organization Marketing Name`)%>%
   group_by(State, MajorInsuranceOrgName)%>% summarize(Enrollment = sum(Enrollment))
 
-final <- final %>% ungroup %>% group_by(State)%>% mutate( MS = Enrollment / sum(Enrollment) * 100)
+marketshare <- marketshare %>% ungroup %>% group_by(State)%>% mutate( MS = Enrollment / sum(Enrollment) * 100)
 ```
 
 
 ```{r}
 #Calculate HHI
-CT_1 <- final %>% ungroup %>% filter(State == "CT")%>%select(MajorInsuranceOrgName, MS); CT <- round(hhi(data.frame(CT_1), "MS"), 0)
-HI_1 <- final %>% ungroup %>%filter(State == "HI")%>%select(MajorInsuranceOrgName, MS); HI <- round(hhi(data.frame(HI_1), "MS"), 0)
-IN_1 <- final %>% ungroup %>%filter(State == "IN")%>%select(MajorInsuranceOrgName, MS); IN <- round(hhi(data.frame(IN_1), "MS"), 0)
-MS_1 <- final %>% ungroup %>%filter(State == "MS")%>%select(MajorInsuranceOrgName, MS); MS <- round(hhi(data.frame(MS_1), "MS"), 0)
-NJ_1 <- final %>% ungroup %>%filter(State == "NJ")%>%select(MajorInsuranceOrgName, MS); NJ <- round(hhi(data.frame(NJ_1), "MS"), 0)
-PA_1 <- final %>% ungroup %>%filter(State == "PA")%>%select(MajorInsuranceOrgName, MS); PA <- round(hhi(data.frame(PA_1), "MS"), 0)
-SC_1 <- final %>% ungroup %>%filter(State == "SC")%>%select(MajorInsuranceOrgName, MS); SC <- round(hhi(data.frame(SC_1), "MS"), 0)
-SD_1 <- final %>% ungroup %>%filter(State == "SD")%>%select(MajorInsuranceOrgName, MS); SD <- round(hhi(data.frame(SD_1), "MS"), 0)
+CT_1 <- marketshare %>% ungroup %>% filter(State == "CT")%>%select(MajorInsuranceOrgName, MS); CT <- round(hhi(data.frame(CT_1), "MS"), 0)
+HI_1 <- marketshare %>% ungroup %>%filter(State == "HI")%>%select(MajorInsuranceOrgName, MS); HI <- round(hhi(data.frame(HI_1), "MS"), 0)
+IN_1 <- marketshare %>% ungroup %>%filter(State == "IN")%>%select(MajorInsuranceOrgName, MS); IN <- round(hhi(data.frame(IN_1), "MS"), 0)
+MS_1 <- marketshare %>% ungroup %>%filter(State == "MS")%>%select(MajorInsuranceOrgName, MS); MS <- round(hhi(data.frame(MS_1), "MS"), 0)
+NJ_1 <- marketshare %>% ungroup %>%filter(State == "NJ")%>%select(MajorInsuranceOrgName, MS); NJ <- round(hhi(data.frame(NJ_1), "MS"), 0)
+PA_1 <- marketshare %>% ungroup %>%filter(State == "PA")%>%select(MajorInsuranceOrgName, MS); PA <- round(hhi(data.frame(PA_1), "MS"), 0)
+SC_1 <- marketshare %>% ungroup %>%filter(State == "SC")%>%select(MajorInsuranceOrgName, MS); SC <- round(hhi(data.frame(SC_1), "MS"), 0)
+SD_1 <- marketshare %>% ungroup %>%filter(State == "SD")%>%select(MajorInsuranceOrgName, MS); SD <- round(hhi(data.frame(SD_1), "MS"), 0)
 ```
 
 #### Make Table with State, hhi, MS and top insurance company 
