@@ -16,14 +16,14 @@ setwd("~/My_R_Stuff/2019/Healthcare/HW2/HW2-Team5")
 Sys.setlocale("LC_ALL", "en_US.UTF8")
 
 #load plan data 
-contract <-  read_excel("~/GitHub/HealthCare/Monthly_Report_By_Plan_2019_01.xls")
+contract <-  read_excel("Monthly_Report_By_Plan_2019_01.xls")
 
 #load enrollment data
-enrollment <- read_csv("~/GitHub/HealthCare/CPSC_Enrollment_Info_2019_01.csv", 
+enrollment <- read_csv("CPSC_Enrollment_Info_2019_01.csv", 
     col_types = cols(`Plan ID` = col_character()) )
 
 #load major insurance orgs 
-MajorInsuranceOrgs <- read_excel("~/GitHub/HealthCare/MajorInsuranceOrgs.xlsx")
+MajorInsuranceOrgs <- read_excel("MajorInsuranceOrgs.xlsx")
 
 ourstates = c("PA", "NJ", "IN", "SC", "CT", "MS", "HI", "SD" )
 #load drug use data EOC170 measured by HEDIS
