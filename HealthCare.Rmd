@@ -11,7 +11,7 @@ output:
 ```{r, message=FALSE, warning=FALSE}
 #rload packages
 library(tidyverse);library(readxl); library(hhi)
-setwd("~/My_R_Stuff/2019/Healthcare/HW2/HW2-Team5")
+setwd("~/My_R_Stuff/2019/Healthcare/HW2/Final HW2")
 #Set uft-8
 Sys.setlocale("LC_ALL", "en_US.UTF8")
 
@@ -71,7 +71,7 @@ final <- left_join(enrollment, contracts_insurance, by = c("Contract Number", "P
 #### calculate marketshare 
 ```{r}
 
-marketshare <- marketshare %>% ungroup%>% select(-`Contract Number`, -`Plan ID`, -`Organization Marketing Name`)%>%
+marketshare <- final %>% ungroup%>% select(-`Contract Number`, -`Plan ID`, -`Organization Marketing Name`)%>%
   group_by(State, MajorInsuranceOrgName)%>% summarize(Enrollment = sum(Enrollment))
 
 marketshare <- marketshare %>% ungroup %>% group_by(State)%>% mutate( MS = Enrollment / sum(Enrollment) * 100)
