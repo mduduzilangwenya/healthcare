@@ -107,4 +107,43 @@ hhi_df_1 <- cbind(hhi_df, insurance, MS)
 hhi_df_1
 ```
 
+#QUESTION3
+
+####Report the rate for EVERY CONTRACT offered by the top-10 biggest market share insurance companies in each state.
+```{r}
+#get the state-company-contract level enrollment 
+test<- final %>% ungroup%>% select(-`Organization Marketing Name`)%>%
+  group_by(`Contract Number`, State, MajorInsuranceOrgName)%>% summarize(Enrollment = sum(Enrollment))
+
+#transform `EOC170-0010`from chr into numeric and filter out the missing values
+EOC170$`EOC170-0010`<-as.numeric(EOC170$`EOC170-0010`)
+index <- which(is.na(EOC170$`EOC170-0010`)); EOC170clean <- EOC170[-index, ]
+
+#join test data and UOD rate data 
+test_rate <- left_join(test, EOC170clean1,  by = "Contract Number") %>% filter(!is.na(`EOC170-0010`))
+
+
+#find the top-10 biggest market share insurance companies in each state
+MS_top<-marketshare%>%ungroup%>% group_by(State) %>%top_n(10, MS)
+MS_top<-MS_top %>% select(-Enrollment)
+
+
+#report the rate for EVERY CONTRACT offered by the top-10 biggest market share insurance companies in each state.
+
+contract_top<-left_join(MS_top,test_rate,by = c("State", "MajorInsuranceOrgName")) %>% group_by(State,MajorInsuranceOrgName)%>% filter(!is.na(`EOC170-0010`))#filter the observations of the top 10 companies from each state
+
+```
+
+
+
+
+```{r}
+# calculate the weighted average of the UOD rate based on the enrollment number of the company for the top-10 in each state can you
+#for each contract, caculate ratebyenrollment = `EOC170-0010` * Enrollment
+test_rate1 <- contract_top %>% mutate(ratebyenrollment = `EOC170-0010` * Enrollment)
+#state-company level,sum the ratebyenrollment
+test_rate2 <- test_rate1 %>% group_by(State, MajorInsuranceOrgName) %>% 
+  mutate(totalratebyenrollment = sum(ratebyenrollment),
+         companyUOD=ratebyenrollment/totalratebyenrollment) 
+test_rate_rank<-test_rate2%>% group_by(State, MajorInsuranceOrgName)%>%arrange(companyUOD, .by_group = TRUE)
 
