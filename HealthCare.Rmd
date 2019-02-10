@@ -153,34 +153,28 @@ EOC170$`EOC170-0010`<-as.numeric(EOC170$`EOC170-0010`)
 index <- which(is.na(EOC170$`EOC170-0010`)); EOC170clean <- EOC170[-index, ]
 
 #join test data and UOD rate data 
-test_rate <- left_join(test, EOC170clean,  by = "Contract Number") %>% filter(!is.na(`EOC170-0010`))
-
+test_rate <- inner_join(test, EOC170clean,  by = "Contract Number") 
 
 #find the top-10 biggest market share insurance companies in each state
-MS_top<-marketshare%>%ungroup%>% group_by(State) %>%top_n(10, MS)
-MS_top<-MS_top %>% select(-Enrollment)
-length(unique(MS_top$MajorInsuranceOrgName))#77 top 10 companies in total
+MS_top<-marketshare%>%ungroup%>% group_by(State) %>%top_n(10, MS) %>% 
+  select(-Enrollment) %>% arrange(desc(MS),.by_group = TRUE)
 
 
 #report the rate for EVERY CONTRACT offered by the top-10 biggest market share insurance companies in each state.
-
-contract_top<-left_join(MS_top,test_rate,by = c("State", "MajorInsuranceOrgName")) %>% group_by(State,MajorInsuranceOrgName)%>% filter(!is.na(`EOC170-0010`))#filter the observations of the top 10 companies from each state
+contract_top <- inner_join(MS_top, test_rate, by = c("State", "MajorInsuranceOrgName")) 
 
 ```
-
-
-
 
 ```{r}
 # calculate the weighted average of the UOD rate based on the enrollment number of the company for the top-10 in each state can you
 #for each contract, caculate ratebyenrollment = `EOC170-0010` * Enrollment
-test_rate1 <- contract_top %>% mutate(ratebyenrollment = `EOC170-0010` * Enrollment)
-#state-company level,sum the ratebyenrollment
-test_rate2 <- test_rate1 %>% group_by(State, MajorInsuranceOrgName) %>% 
-  mutate(totalratebyenrollment = sum(ratebyenrollment),
-         companyUOD=ratebyenrollment/totalratebyenrollment) 
-test_rate_rank<-test_rate2%>% group_by(State, MajorInsuranceOrgName)%>%arrange(desc(companyUOD), .by_group = TRUE)
-```
+test_rate1 <- contract_top %>% mutate(ratebyenrollment = `EOC170-0010` * Enrollment) %>% group_by(State, MajorInsuranceOrgName) %>% 
+  summarise(totalratebyenrollment = sum(ratebyenrollment),
+            totalenrollment = sum(Enrollment),
+            weightedUOD=totalratebyenrollment/totalenrollment) 
 
+test_rate_rank<-test_rate1%>% select(-totalenrollment,-totalratebyenrollment)%>% group_by(State)%>%arrange(desc(weightedUOD), .by_group = TRUE)
+
+```
 
 
