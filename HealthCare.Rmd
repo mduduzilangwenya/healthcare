@@ -21,11 +21,14 @@ contract <-  read_excel("Monthly_Report_By_Plan_2019_01.xls")
 #load enrollment data
 enrollment <- read_csv("CPSC_Enrollment_Info_2019_01.csv", 
     col_types = cols(`Plan ID` = col_character()) )
+#load dental data
+dental = read_delim("pbp_b16_dental.txt", "\t", escape_double = FALSE, trim_ws = TRUE)
 
 #load major insurance orgs 
 MajorInsuranceOrgs <- read_excel("MajorInsuranceOrgs.xlsx")
 
 ourstates = c("PA", "NJ", "IN", "SC", "CT", "MS", "HI", "SD" )
+
 #load drug use data EOC170 measured by HEDIS
 #EOC170 - Use of Opioids at High Dosage (UOD)
 EOC170 <- read_excel("HEDIS2018.xlsx", 
@@ -114,8 +117,6 @@ MS_top5 <- marketshare %>% ungroup %>% group_by(State) %>% top_n(5, MS)
 ```
 #### clean the dental data
 ```{r}
-dental = read_delim("~/Desktop/pbp_b16_dental.txt", "\t", escape_double = FALSE, trim_ws = TRUE)
-
 dental = dental %>% select(`Contract Number` = pbp_a_hnumber, `Plan ID` = pbp_a_plan_identifier, segment_id, pbp_b16a_bendesc_yn, pbp_b16b_bendesc_yn)
 
 dental_seg = dental %>% ungroup %>% 
