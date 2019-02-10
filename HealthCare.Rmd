@@ -107,6 +107,38 @@ hhi_df_1 <- cbind(hhi_df, insurance, MS)
 hhi_df_1
 ```
 
+#QUESTION 2
+#### Top 5 companies of market share for each state
+```{r}
+MS_top5 <- marketshare %>% ungroup %>% group_by(State) %>% top_n(5, MS)
+```
+#### clean the dental data
+```{r}
+dental = read_delim("~/Desktop/pbp_b16_dental.txt", "\t", escape_double = FALSE, trim_ws = TRUE)
+
+dental = dental %>% select(`Contract Number` = pbp_a_hnumber, `Plan ID` = pbp_a_plan_identifier, segment_id, pbp_b16a_bendesc_yn, pbp_b16b_bendesc_yn)
+
+dental_seg = dental %>% ungroup %>% 
+  group_by(`Contract Number`, `Plan ID`) %>% 
+  top_n(-1, segment_id)
+
+```
+##### merge by Orgcompanies
+```{r,warning=FALSE}
+dental_service = left_join(final,dental_seg, by=c("Contract Number", "Plan ID"))
+
+dental_P <- dental_service %>% filter(pbp_b16a_bendesc_yn == 1) %>% group_by(State, MajorInsuranceOrgName) %>% summarise(Enroll_P=sum(Enrollment, na.rm = TRUE)) 
+dental_C <- dental_service %>% filter(pbp_b16b_bendesc_yn == 1) %>% group_by(State, MajorInsuranceOrgName) %>% summarise(Enroll_C=sum(Enrollment, na.rm = TRUE))
+dental_total <- dental_service %>% group_by(State, MajorInsuranceOrgName) %>% summarise(Enroll_T=sum(Enrollment, na.rm = TRUE))
+#combine P C number
+dental_total = left_join(dental_total,dental_P, by=c("State","MajorInsuranceOrgName"))
+dental_total = left_join(dental_total,dental_C, by=c("State","MajorInsuranceOrgName"))
+#calculate percentage
+dental_total = dental_total %>% mutate(P_percentage = Enroll_P/Enroll_T,C_percentage = Enroll_C/Enroll_T) %>% select(State,MajorInsuranceOrgName,P_percentage, C_percentage)
+#merge with top 5 in each state
+dental_top5 = left_join(MS_top5, dental_total, by=c("State","MajorInsuranceOrgName"))
+```
+
 #QUESTION3
 
 ####Report the rate for EVERY CONTRACT offered by the top-10 biggest market share insurance companies in each state.
