@@ -11,7 +11,7 @@ output:
 ```{r, message=FALSE, warning=FALSE}
 #rload packages
 library(tidyverse);library(readxl); library(hhi)
-
+setwd("~/My_R_Stuff/2019/Healthcare/HW2/HW2-Team5")
 #Set uft-8
 Sys.setlocale("LC_ALL", "en_US.UTF8")
 
@@ -26,6 +26,10 @@ enrollment <- read_csv("~/GitHub/HealthCare/CPSC_Enrollment_Info_2019_01.csv",
 MajorInsuranceOrgs <- read_excel("~/GitHub/HealthCare/MajorInsuranceOrgs.xlsx")
 
 ourstates = c("PA", "NJ", "IN", "SC", "CT", "MS", "HI", "SD" )
+#load drug use data EOC170 measured by HEDIS
+#EOC170 - Use of Opioids at High Dosage (UOD)
+EOC170 <- read_excel("HEDIS2018.xlsx", 
+    sheet = "EOC170")
 ```
 
 #### Clean Enrollment Data
